@@ -1,0 +1,397 @@
+{% extends "blank.html" %}
+{% include "stock.html" %}
+{% block header %}
+<link rel="stylesheet" href="{{static_url}}/css/myplugin.css"/>
+<link rel="stylesheet" href="{{static_url}}/zTree/zTreeStyle/zTreeStyle.css"/>
+<link rel="stylesheet" href="{{static_url}}/css/stock_in_out.css"/>
+{% endblock %}
+
+{% block body %}
+<div class="col-sm-12">
+    <ul class="nav nav-tabs" id="ul_tab">
+        <li class="active">
+            <a data-toggle="tab" href="#new-add">新增入库</a>
+        </li>
+
+        <li>
+            <a data-toggle="tab" href="#old-add">已有固定资产入库</a>
+        </li>
+
+        <li>
+            <a data-toggle="tab" href="#old-c-add">已有耗材入库</a>
+        </li>
+
+        <li>
+            <a data-toggle="tab" href="#old-p-add">已有号码入库</a>
+        </li>
+        <li>
+            <a data-toggle="tab" href="#multi-button" onclick="multiStockIn()">批量入库</a>
+        </li>
+    </ul>
+
+    <div class="tab-content">
+        <!-- 新增设备入库  -->
+        <div id="new-add" class="tab-pane in active">
+            <!-- single stock in  -->
+            <div id="stock_new_in">
+                <form class="form-horizontal">
+                    <div class="row">
+                        <div class="col-xs-12">
+                            <h4 class="header blue center" style="margin-bottom:20px;"><strong> 资产入库信息 </strong></h4>
+
+                            <!-- 显示资产信息模板 -->
+                            <div id="asset_info" style="display:none">
+                            </div>
+                            <div id="other" style="display: none">
+                            </div>
+                            <div id="button"></div>
+                            <!-- col-xs-12 -->
+                        </div>
+                        <!-- row -->
+                    </div>
+                </form>
+            </div>
+        </div>
+        <!-- 已有设备入库  -->
+        <div id="old-add" class="tab-pane">
+            <div id="query"></div>
+            <div id="stock_have_device">
+            </div>
+        </div>
+        <!-- 已有耗材入库  -->
+        <div id="old-c-add" class="tab-pane">
+            <div id="stock_consume_device">
+                <!--这段是显示资产信息表格-->
+                <form class="form-horizontal">
+                    <div class="row">
+                        <div style="width: 100%;">
+                            <div style="width: 58%;float: left;">
+                                <div class="widget-box">
+                                    <div class="widget-header">
+                                        <strong> 耗材相关信息 </strong>
+                                    </div>
+                                    <div class="widget-body">
+                                        <div class="widget-main" style="padding:12px 3px 12px 3px;">
+                                            <!-- 资产信息  -->
+                                            <div id="consume_have_info">
+                                                <div class="form-group">
+                                                    <div class="space-4"></div>
+                                                    <label>耗材类别：</label>
+                                                    <input type="text" class="col-xs-12" id="asset_type_c">
+
+                                                    <div class="clearfix">
+                                                        <!-- zTree -->
+                                                        <div class="zTreeDemoBackground left">
+                                                            <ul id="asset_type_tree_c"
+                                                                style="height:150px;border:1px dashed #B9C0C5;"
+                                                                class="ztree asset_type_tree">
+                                                            </ul>
+                                                        </div>
+
+                                                    </div>
+                                                </div>
+                                                <div class="form-group">
+                                                    <label class="col-xs-2 control-label no-padding-right">品牌：</label>
+                                                    <select id="provider_c" class="col-sm-4"></select>
+                                                    <label class="col-xs-2 control-label no-padding-right">型号：</label>
+                                                    <select id="model_c" class="col-sm-4"></select>
+                                                </div>
+                                                <div class="form-group">
+                                                    <label class="col-xs-2 control-label no-padding-right">使用人：</label>
+                                                    <input type="text" name="user_name_c" id="user_name_c"
+                                                           class="col-sm-4" onblur="showUseNum()">
+                                                    <label class="col-xs-2 control-label no-padding-right">使用数量：</label>
+                                                    <input type="text" name="in_num_c" class="col-sm-4"
+                                                           readonly="true/">
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div style="width: 41%;float: right;">
+                                <div class="widget-box">
+                                    <div class="widget-header">
+                                        <strong> 入库信息 </strong>
+                                    </div>
+
+                                    <div class="widget-body">
+                                        <div class="widget-main">
+                                            <!-- 入库信息  -->
+                                            <div id="consume_info_right">
+                                            </div>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-xs-12">
+                                                <div style="float:right;margin-top:20px;margin-bottom:10px; margin-right:11%;">
+                                                    <button class="btn btn-info" type="button"
+                                                            onclick="submitConsumeInFormRight(true);">
+                                                        <i class="icon-arrow-right bigger-110"></i>
+                                                        提交
+                                                    </button>
+                                                    <button class="btn btn-info" type="button"
+                                                            onclick="submitConsumeInFormRight(false);">
+                                                        <i class="icon-arrow-up bigger-110"></i>
+                                                        提交并继续
+                                                    </button>
+                                                    <button class="btn" type="reset">
+                                                        <i class="icon-undo bigger-110"></i>
+                                                        重置
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <!-- 已有号码入库  -->
+        <div id="old-p-add" class="tab-pane">
+            <div class="row" style="margin-bottom: 10px;">
+                <div id="searchBox">
+                    <div class="form-group">
+                        <div class="col-xs-7">
+                            <div class="input-group">
+                                <input type="text" id="search_phone" class="form-control search-query"
+                                       placeholder="请输入电话号码">
+                        <span class="input-group-btn">
+                            <button id="query_phone" type="button" class="btn btn-info btn-sm">
+                                查询
+                                <i class="icon-search icon-on-right bigger-110"></i>
+                            </button>
+                        </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- search box  -->
+            </div>
+            <div id="stock_phone_device">
+                <!--这段是显示资产信息表格-->
+                <form class="form-horizontal">
+                    <div class="row">
+                        <div style="width:100%;">
+                            <div style="width:58%;float: left;">
+                                <div class="widget-box">
+                                    <div class="widget-header">
+                                        <strong> 电话相关信息 </strong>
+                                    </div>
+                                    <div class="widget-body">
+                                        <div class="widget-main" style="padding:12px 3px 12px 3px;">
+                                            <!-- 资产信息  -->
+                                            <div id="phone_have_info">
+                                                <div class="form-group">
+                                                    <label class="col-xs-2 control-label no-padding-right">电话号码：</label>
+                                                    <input type="text" name="phone_no" class="col-sm-4"
+                                                           readonly="true/">
+                                                    <label class="col-xs-2 control-label no-padding-right">号码类别：</label>
+                                                    <input type="text" name="asset_type" class="col-sm-4"
+                                                           readonly="true/">
+                                                </div>
+                                                <div class="form-group">
+                                                    <label class="col-xs-2 control-label no-padding-right">存放地点：</label>
+                                                    <input type="text" name="store_place" class="col-sm-4"
+                                                           readonly="true/">
+                                                    <label class="col-xs-2 control-label no-padding-right">资产状态：</label>
+                                                    <input type="text" name="store_state" class="col-sm-4"
+                                                           readonly="true/">
+                                                </div>
+                                                <div class="form-group">
+                                                    <label class="col-xs-2 control-label no-padding-right">设备状态：</label>
+                                                    <input type="text" name="device_state" class="col-sm-4"
+                                                           readonly="true/">
+                                                    <label class="col-xs-2 control-label no-padding-right">入库原因：</label>
+                                                    <input type="text" name="in_out_reason" class="col-sm-4"
+                                                           readonly="true/">
+                                                </div>
+                                                <div class="form-group">
+                                                    <label class="col-xs-2 control-label no-padding-right">使用人：</label>
+                                                    <input type="text" name="user_name" class="col-sm-4"
+                                                           readonly="true/">
+                                                    <label class="col-xs-2 control-label no-padding-right">备注信息：</label>
+                                                    <input type="text" name="remark" class="col-sm-4"
+                                                           readonly="true/">
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div style="width: 41%;float: right">
+                                <div class="widget-box">
+                                    <div class="widget-header">
+                                        <strong> 入库信息 </strong>
+                                    </div>
+
+                                    <div class="widget-body">
+                                        <div class="widget-main">
+                                            <!-- 入库信息  -->
+                                            <div id="phone_info_right">
+                                            </div>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-xs-12">
+                                                <div style="float:right;margin-top:20px;margin-bottom:10px; margin-right:11%;">
+                                                    <button class="btn btn-info" type="button"
+                                                            onclick="submitPhoneFormRight(true);">
+                                                        <i class="icon-arrow-right bigger-110"></i>
+                                                        提交
+                                                    </button>
+                                                    <button class="btn btn-info" type="button"
+                                                            onclick="submitPhoneFormRight(false);">
+                                                        <i class="icon-arrow-up bigger-110"></i>
+                                                        提交并继续
+                                                    </button>
+                                                    <button class="btn" type="reset">
+                                                        <i class="icon-undo bigger-110"></i>
+                                                        重置
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <!-- 批量入库  -->
+        <div id="multi-button" class="tab-pane">
+            <div class="alert alert-info col-xs-12">
+                <button type="button" class="close" data-dismiss="alert">
+                    <i class="icon-remove"></i>
+                </button>
+                <strong>
+                    <i class="icon-exclamation-sign"></i>
+                    说明：
+                </strong>
+                <br>
+                1) 请先下载批量入库模板
+                <br>
+                2) 根据入库模板填写入库信息
+                <br>
+                3) 选择填写好的模板文件进行导入
+            </div>
+        </div>
+        <div class="clearfix"></div>
+        <!-- single stock in  -->
+    </div>
+    <!-- new-add -->
+
+
+    <!-- multi-button  -->
+</div>
+<!-- tab-content  -->
+
+<div id="multi_stock_in_datas"></div>
+<!-- dialog -->
+<div id="common-notice-dialog" class="hide"></div>
+{% endblock %}
+
+{% block js %}
+<!-- 导入库文件 -->
+<script src="{{static_url}}/MyPlugin/jquery-ui.1.10.3.full.my.js"></script>
+<script src="{{static_url}}/MyPlugin/jquery.myplugin.js"></script>
+<script src="{{static_url}}/zTree/jquery.ztree.all-3.5.min.js"></script>
+<script src="{{static_url}}/js/Ztree.js"></script>
+<script src="{{static_url}}/js/utils.js"></script>
+<script src="{{static_url}}/js/business_utils.js"></script>
+<script src="{{static_url}}/js/asset_info_utils.js"></script>
+<script src="{{static_url}}/js/stock_in_out_utils.js"></script>
+<script src="{{static_url}}/js/phone_in.js"></script>
+<script src="{{static_url}}/js/consume_in.js"></script>
+<script src="{{static_url}}/js/dialog_common.js"></script>
+<script src="{{static_url}}/My97DatePicker/WdatePicker.js"></script>
+
+<script type="text/javascript">
+
+    jQuery(function ($) {
+        window.c_tree_id = -1;
+        //  这里是给新增页面div赋值
+        initNewAddDiv();
+
+        autoShowInfo('new_template', 'user_name');
+        //  这是给已有资产页面赋值
+        initStockInOutDiv(0);
+
+        initConsumeInDiv();
+
+        initPhoneInDiv();
+
+    });
+
+    function initNewAddDiv() {
+        $("#asset_info").empty();
+        var asset_content = constructNewAssetTypeAdd();
+        $("#asset_info").append(asset_content).show();
+        initDom();
+        createFormValidate($("#stock_new_in").find("form"));
+    }
+
+    function multiStockIn() {
+        var form = '<div style="padding: 10px 0px">'
+                + '请下载入库模板：<a href="/static/excel/asset_infos.xlsx">资产入库</a></div>'
+                + '<form id="uploadStockInFile">'
+                + '<input type="file" name="file"/>'
+                + '</form></div>';
+        var dialog = $("#multi_stock_in_datas").removeClass('hide').append(form).dialog({
+            autoOpen: true,
+            width: 450,
+            top: 322,
+            modal: true,
+            draggable: true,
+            resizable: true,
+            title: "批量入库",
+            buttons: [
+                {
+                    text: "确认上传",
+                    "class": "btn btn-danger btn-xs",
+                    click: function () {
+                        var formData = new FormData();
+                        formData.append('file', $('#uploadStockInFile input[name=file]').get(0).files[0]);
+                        $.ajax({
+                            type: "POST",
+                            url: '/stock_in/upload_asset_file',
+                            contentType: false,
+                            data: formData,
+                            processData: false,
+                            success: function (resp) {
+                                if (resp.success) {
+                                    showSuccessTips(resp.msg);
+                                    $("#multi_stock_in_datas").empty();
+                                    $("#multi_stock_in_datas").dialog('destroy')
+                                } else {
+                                    showFailTips(resp.msg);
+                                }
+                            },
+                            error: function (jqXHR, textStatus, errorThrown) {
+                                showErrorTips();
+                            }
+                        });
+                    }
+                },
+                {
+                    text: "取消",
+                    "class": "btn btn-xs",
+                    click: function () {
+                        $("#multi_stock_in_datas").empty();
+                        $("#multi_stock_in_datas").dialog('destroy')
+                    }
+                }
+            ],
+            close: function () {
+                $("#multi_stock_in_datas").empty();
+                $("#multi_stock_in_datas").dialog('destroy')
+            }
+        });
+    }
+
+</script>
+
+{% endblock %}

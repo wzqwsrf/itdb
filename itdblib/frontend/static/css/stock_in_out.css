@@ -1,0 +1,59 @@
+label {
+    /*text-align: right;*/
+    font-size: 16px;
+    color: #105996;
+    /*width:100px;*/
+}
+
+#stock_have_device label {
+    /*text-align: right;*/
+    font-size: 14px;
+    color: #105996;
+    width: 100px;
+}
+
+.widget-body {
+    padding: 0 20px 0;
+}
+
+/*
+ *  新增入库select宽度
+ */
+.chosen-container {
+    width: 100% !important;
+}
+
+/*
+ *  已有设备入库select宽度
+ */
+#stock_have_device .chosen-container {
+    width: 91.7% !important;
+}
+
+#stock_have_device .col-xs-12 {
+    padding: 0;
+}
+
+#stock_have_device .col-sm-7:nth-child(2n+1) {
+    padding-left: 0;
+}
+
+#stock_have_device .col-sm-5:nth-child(2n) {
+    padding-right: 0;
+}
+
+#searchBox .col-xs-12 {
+    padding: 0;
+}
+
+#searchBox .col-xs-7:nth-child(2n+1) {
+    padding-left: 0;
+}
+
+.asset_type_tree {
+    overflow: auto
+}
+
+.dialog_top {
+    top: 322!important;
+}

@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title></title>
+    <style>
+        .row_selected td {
+            background-color: #D3D6FF !important;
+        }
+
+        .col-xs-w {
+            height: 40px;
+        }
+
+        .query_s {
+            width: 184px;
+            height: 28px;
+        }
+
+    </style>
+</head>
+<body>
+
+<div id="head" style="display: none">
+    <div id="query">
+        <!--这部分是查询按钮框-->
+        <div id="query_button" class="row" style="margin-bottom: 10px;">
+            <div id="searchBox">
+                <div class="form-group">
+                    <div class="col-xs-7">
+                        <div class="input-group">
+                            <input type="text" id="search_val" class="form-control search-query"/>
+                        <span class="input-group-btn">
+                            <button id="query_id" type="button" class="btn btn-info btn-sm">
+                                查询
+                                <i class="icon-search icon-on-right bigger-110"></i>
+                            </button>
+                            <label style="width: 10px"></label>
+                            <button id="ad_id" type="button" class="btn btn-success btn-sm">
+                                展开更多查询条件
+                            </button>
+                        </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- search box  -->
+        </div>
+    </div>
+    <div id="another_query" class="col-xs-12"
+         style="display: none;border:1px dashed #006dcc; margin-bottom: 10px;height: 300px;">
+        <div class="col-xs-4">
+            <div>
+                <div class="space-4"></div>
+                <label>设备类型：</label>
+                <input type="text" class="col-xs-12" id="s_asset_type">
+
+                <div class="clearfix">
+                    <!-- zTree -->
+                    <div class="zTreeDemoBackground left" style="margin-left: 1px">
+                        <ul id="asset_type_tree" style="height:150px;border:1px dashed #B9C0C5;"
+                            class="ztree asset_type_tree">
+                        </ul>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+        <div class="col-xs-8">
+            <div class="col-xs-4">
+                <div class="space-4"></div>
+                <label style="width: 56px;">品牌:</label>
+                <select id="s_provider" class="query_s">
+                </select>
+
+                <div class="space-4"></div>
+                <label style="width: 56px;">型号:</label>
+                <select id="s_model" class="query_s">
+                </select>
+
+                <div class="space-4"></div>
+                <label> 操作人：</label>
+                <input id="s_oper_name" type="text" class="query_s" placeholder="请输入rtx_id"/>
+
+                <div style="margin-bottom: 40px;"></div>
+                <button id="actual_id" type="button" class="btn btn-primary">
+                    高级查询按钮点这里
+                    <i class="icon-search icon-on-right"></i>
+                </button>
+            </div>
+            <div class="col-xs-4">
+                <div class="space-4"></div>
+                <label style="width: 98px;"> 资产状态：</label>
+                <select id="s_store_state" class="query_s">
+                </select>
+
+                <div id="in_out"></div>
+                <div class="space-4"></div>
+                <label> 启用开始时间：</label>
+        <span class="input-icon input-icon-right">
+            <input id="s_date_from1" type="text"/>
+            <i class="icon-calendar green"></i>
+        </span>
+
+                <div class="space-4"></div>
+                <label> 启用结束时间：</label>
+        <span class="input-icon input-icon-right">
+            <input id="s_date_to1" type="text"/>
+            <i class="icon-calendar green"></i>
+        </span>
+
+
+            </div>
+            <div class="col-xs-4">
+                <div class="space-4"></div>
+                <label style="width: 98px;"> 设备状态：</label>
+                <select id="s_device_state" class="query_s">
+                </select>
+
+                <div class="space-4"></div>
+                <label style="width: 98px;"> 存放地点：</label>
+                <select id="s_store_place" class="query_s">
+                </select>
+
+                <div class="space-4"></div>
+                <label> 更新开始时间：</label>
+        <span class="input-icon input-icon-right">
+            <input id="s_date_from2" type="text"/>
+            <i class="icon-calendar green"></i>
+        </span>
+
+                <div class="space-4"></div>
+                <label> 更新结束时间：</label>
+        <span class="input-icon input-icon-right">
+            <input id="s_date_to2" type="text"/>
+            <i class="icon-calendar green"></i>
+        </span>
+            </div>
+        </div>
+
+    </div>
+</div>
+<div id="right" style="display: none">
+    <div class="col-xs-5">
+        <!--右侧TAB-->
+        <div class="widget-box transparent" style="opacity: 1; z-index: 0;">
+            <!--Tab选项-->
+            <ul class="nav nav-tabs" id="application-tab">
+                <li class="active">
+                    <a id="detail-panel-tab" data-toggle="tab"
+                       href="#detail-panel-content"
+                       title="设备详情">设备详情</a>
+                </li>
+                <li class="">
+                    <a id="salt-info-tab" data-toggle="tab"
+                       href="#salt-info-content"
+                       title="操作信息">操作信息</a>
+                </li>
+            </ul>
+            <!--End Tab选项-->
+
+            <!--Tab页面-->
+            <div class="widget-body">
+                <div class="tab-content no-padding">
+                    <!--设备详情页面-->
+                    <div id="detail-panel-content"
+                         class="tab-pane active">
+                        <div id="dev_detail_panel">
+                            <div id="dev_detail_tbar" style="height: 36px; padding: 6px 0;
+                                                        " class="hide">
+                            </div>
+                            <table id="detail_table" class="table table-striped table-bordered table-hover">
+                            </table>
+                        </div>
+                    </div>
+                    <!--tab-pane-->
+                    <!--End 设备详情页面-->
+
+                    <!--SALT信息页面-->
+                    <div id="salt-info-content" class="tab-pane">
+                        <div id="salt_info_panel">
+                            <table id="ope_table" class="table table-striped table-bordered table-hover">
+                            </table>
+                        </div>
+                    </div>
+                    <!--tab-pane-->
+                    <!--End SALT信息页面-->
+                </div>
+                <!--tab-content-->
+                <!--widget-main-->
+            </div>
+            <!--widget-body-->
+            <!--End Tab页面-->
+        </div>
+        <!--widget-box-->
+    </div>
+</div>
+
+</body>
+</html>

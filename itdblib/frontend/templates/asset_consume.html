@@ -1,0 +1,662 @@
+{% extends "blank.html" %}
+{% include "advanced_query.html" %}
+{% block header %}
+<link rel="stylesheet" href="{{static_url}}/css/myplugin.css"/>
+<link rel="stylesheet" href="{{static_url}}/zTree/zTreeStyle/zTreeStyle.css"/>
+{% endblock %}
+
+{% block body %}
+
+<div class="col-xs-12">
+    <div id="head_in"></div>
+    <div class="space-4"></div>
+    <div class="col-xs-12" style="padding-left: 0;">
+
+        <div class="col-xs-7" style="padding-left: 0">
+            <div class="table-header">
+                资产信息结果
+            </div>
+            <div class="table-responsive" id='card_s'>
+                <div style="height: 36px; padding: 6px 0;background-color: rgb(245, 245, 245)">
+                    <!--<button>-->
+                    <input id="ex_dev_btn" class="right btn btn-inverse btn-xs" style="float: right"
+                           type=button value="下载文件">
+                    <!--<a href="查询结果.xls">另存为</a>-->
+                    <!--</button>-->
+                </div>
+                <table id="consume_table" class="table table-striped table-bordered table-hover">
+                </table>
+            </div>
+        </div>
+        <div id="right_in"></div>
+
+    </div>
+</div>
+
+
+<div id="common-notice-dialog" class="hide"></div>
+
+{% endblock %}
+
+{% block js %}
+<!-- 导入库文件 -->
+<script src="{{ static_url }}/ace/js/jquery.dataTables.min.js"></script>
+<script src="{{ static_url }}/ace/js/jquery.dataTables.bootstrap.js"></script>
+<script src="{{static_url}}/MyPlugin/jquery-ui.1.10.3.full.my.js"></script>
+<script src="{{static_url}}/MyPlugin/jquery.myplugin.js"></script>
+<script src="{{static_url}}/zTree/jquery.ztree.all-3.5.min.js"></script>
+<script src="{{static_url}}/js/Ztree.js"></script>
+<script src="{{static_url}}/js/utils.js"></script>
+<script src="{{static_url}}/js/business_utils.js"></script>
+<script src="{{static_url}}/js/asset_info_utils.js"></script>
+<script src="{{static_url}}/js/advanced_query.js"></script>
+<script src="{{static_url}}/js/dialog_common.js"></script>
+<script src="{{static_url}}/My97DatePicker/WdatePicker.js"></script>
+<script type="text/javascript">
+
+/*  进入主页面展示信息*/
+$(function () {
+    window.edit_form = $("#edit-form").html();
+    window.oper_form = $("#oper-form").html();
+    advance_query("consume/advanced", 2);
+    var url = "asset/consume";
+    showConsumeInfo(url, 1);
+});
+
+function get_first_table_enlist() {
+    var enlist = ['id', 'asset_type', 'in_num', 'store_state',
+        'device_state', 'user_name', 'store_place'];
+    return enlist;
+}
+/* 列名*/
+function getConsumeColumns() {
+    var chlist = ['ID', '耗材类别', '耗材数量', '资产状态',
+        '设备状态', '使用人', '存放地点'];
+    var enlist = get_first_table_enlist();
+    var aoColumns = [];
+    var d_len = chlist.length;
+    for (var i = 0; i < d_len; i++) {
+        var dicts = {'sTitle': chlist[i], 'sName': enlist[i]};
+        aoColumns.push(dicts);
+    }
+    return aoColumns;
+}
+
+//显示表格数据
+function showConsumeInfo(url, params) {
+    var ex = document.getElementById('consume_table');
+    if ($.fn.dataTable.fnIsDataTable(ex)) {
+        $(ex).dataTable().fnDestroy();
+    }
+    var aoColumns = getConsumeColumns();
+    var wh = $(window).height();
+    var sY = (wh - 100) + 'px';
+    var oTable = $(ex).dataTable({
+        "bFilter": false,
+        "bAutoWidth": false,
+        "bProcessing": false,
+        "bServerSide": true,
+        "sDom": 't<"row"<"col-sm-12"i>>',
+        "bSort": false,
+        "bScrollCollapse": true,
+        "iDisplayLength": 30,
+        "iDisplayStart": 0,
+        "aoColumns": aoColumns,
+        "sAjaxSource": "",
+        "bScrollInfinite": true,
+        "sScrollY": sY,
+        "fnServerData": function (sSource, aDataSet, fnCallback) {
+            if (params != 1) {
+                var list = getAdvancedList();
+                var d_len = list.length;
+                for (var i = 0; i < d_len; i++) {
+                    var param = {};
+                    param["name"] = list[i];
+                    param["value"] = params[list[i]];
+                    aDataSet.push(param);
+                }
+            }
+            $.ajax({
+                "dataType": 'json',
+                "type": "POST",
+                "url": url,
+                "data": aDataSet,
+                "success": function (resp) {
+                    var iTotalRecords = resp.count || 0;
+                    var iTotalDisplayRecords = iTotalRecords;
+                    var aaData = showConsumeAssetInfo(resp.data);
+                    var data = {
+                        "aaData": aaData,
+                        "iTotalRecords": (iTotalRecords || 0),
+                        "iTotalDisplayRecords": (iTotalDisplayRecords || 0)
+                    };
+                    fnCallback(data);
+                    exportAsset();
+                },
+                error: function () {
+                    showErrorTips();
+                }
+            });
+        },
+        "fnDrawCallback": function () {
+            if (!oTable) {
+                return;
+            }
+            oTable.$('tr.row_selected').removeClass('row_selected');
+            oTable.$("tr").unbind('click');
+            oTable.$("tr").click({oTable: oTable}, function (e) {
+                if ($(this).hasClass('row_selected')) {
+                    $(this).removeClass('row_selected');
+                }
+                else {
+                    e.data.oTable.$('tr.row_selected').removeClass('row_selected');
+                    $(this).addClass('row_selected');
+                    var id = e.data.oTable.fnGetData(this)[0];
+                    var asset_type = e.data.oTable.fnGetData(this)[1];
+                    var store_state = e.data.oTable.fnGetData(this)[3];
+                    showDetailPanel(id, asset_type, store_state);
+                    showOperaInfo(id);
+                }
+            });
+        }
+    })
+}
+
+
+function showDetailPanel(id, asset_type, store_state) {
+    var ex = document.getElementById('detail_table');
+    if ($.fn.dataTable.fnIsDataTable(ex)) {
+        $(ex).dataTable().fnDestroy();
+    }
+    var list = getConsumeEnChList(store_state);
+    var enlist = list[0];
+    var chlist = list[1];
+    var prolist = [];
+    var dicts = {};
+    var c_len = chlist.length;
+    for (var i = 0; i < c_len; i++) {
+        if (containsValue(consumeAssetList(), asset_type)) {
+            if (enlist[i] == "user_name") {
+                chlist[i] = "需升级资产编号";
+            }
+        }
+        dicts = {'title': chlist[i], 'name': enlist[i]};
+        prolist.push(dicts);
+    }
+    $('#detail_table').dataTable({
+        "bRetrieve": true,
+        "bFilter": false,
+        "bPaginate": false,
+        "bSort": false,
+        "sDom": 't',
+        "bServerSide": false,
+        "sAjaxSource": "",
+        "bAutoWidth": false, //自适应宽度
+        "aoColumns": [
+            {
+                "sTitle": "属性名", "sWidth": 150, "sClass": "align-center align-middle"
+            },
+            {
+                "sTitle": "属性值"
+            }
+        ],
+        "fnServerData": function (q, e, fnCallback) {
+            $.ajax({
+                "dataType": 'json',
+                "type": "GET",
+                "url": "consume/id/" + id,
+                "success": function (resp) {
+                    var aaData = [];
+                    var dic = resp[0];
+                    if (resp) {
+                        var d_len = prolist.length;
+                        for (var i = 0; i < d_len; i++) {
+                            if (dic[prolist[i].name] == 0) {
+                                dic[prolist[i].name] = "0";
+                            }
+                            aaData.push([prolist[i].title, dic[prolist[i].name] || ""]);
+                        }
+                    }
+                    var data = {
+                        "aaData": aaData
+                    };
+
+                    fnCallback(data);
+
+                },
+                error: function () {
+                    showErrorTips();
+                }
+            });
+
+        }
+    });
+}
+
+function getConsumeEnChList(store_state) {
+    var enlist = [];
+    var chlist = [];
+    if (store_state == '库存') {
+        enlist = getDetailConsumeInEnlist();
+        chlist = getDetailConsumeInChlist();
+    } else if (store_state == '在用') {
+        enlist = getDetailConsumeOutEnlist();
+        chlist = getDetailConsumeOutChlist();
+    }
+    return [enlist, chlist];
+}
+
+function showOperaInfo(id) {
+    var ex = document.getElementById('ope_table');
+    if ($.fn.dataTable.fnIsDataTable(ex)) {
+        $(ex).dataTable().fnDestroy();
+    }
+    var aoColumns = [
+        {
+            "sTitle": "操作类型", "sName": "oper_type", "sClass": "align-center align-middle"
+        },
+        {
+            "sTitle": "操作人/时间", "sName": "operator", "sClass": "align-center align-middle"
+        },
+        {
+            "sTitle": "操作内容", "sName": "text", "sClass": "align-center align-middle"
+        }
+    ];
+    var oTable = $(ex).dataTable({
+        "bRetrieve": true,
+        "bPaginate": false,
+        "bServerSide": false,
+        "aoColumns": aoColumns,
+        "iDisplayLength": 30,
+        "sAjaxSource": "",
+        "bAutoWidth": false, //自适应宽度
+        "bSort": false,
+        "fnServerData": function (sSource, aDataSet, fnCallback) {
+            $.ajax({
+                "dataType": 'json',
+                "type": "GET",
+                "url": "operate/" + id,
+                "data": aDataSet,
+                "success": function (resp) {
+                    var data = showDetailsInfo(resp);
+                    fnCallback(data);
+                },
+                error: function () {
+                    showErrorTips();
+                }
+            });
+        }
+    });
+}
+
+/*展示tb_asset_info详细信息表格  */
+function showConsumeAssetInfo(resp) {
+    var aaData = [];
+    d = {};
+    if (resp) {
+        var d = resp;
+        var d_len = d.length;
+        var enlist = get_first_table_enlist();
+        var en_len = enlist.length;
+        for (var i = 0; i < d_len; i++) {
+            var data = [];
+            for (var j = 0; j < en_len; j++) {
+                data[j] = d[i][enlist[j]];
+            }
+            aaData.push(data);
+        }
+    }
+    return aaData;
+}
+
+
+function consumeIn() {
+    window.edit_form = $("#edit-form").html();
+    window.oper_form = $("#oper-form").html();
+    $('#consume_in').empty();
+    var chlist = getAssetConsumeInChlist();
+    var enlist = getAssetConsumeInEnlist();
+    var content = constructActualConsumeAdd(chlist, enlist, 0);
+    $('#consume_in').append(content);
+    initConsumeInDom();
+    $('#consume_in').find("input[name='in_consume_num1']").attr("readonly", "true");
+    $('#consume_in').find("textarea[name='in_remark']").val('新增库存');
+    getSelectValue('in_store_place', '/asset_info/loadstate/3', '请选择存放地点');
+    $('#in_store_place').change(function () {
+        if ($('#in_store_place').val().substr(0, 1) != "请") {
+            constructPostParams(0);
+        }
+    });
+    $('#in_save').click(function () {
+        var thisForm = $("#consume_in").find("form");
+        if (!thisForm.valid()) {
+            return;
+        }
+//      这里把新增入库的信息处理一下。
+        var postData = thisForm.serializeArray();
+        var bData = formatbData(postData, 0);
+        $.ajax({
+            type: "POST",
+            url: "consume/in",
+            dataType: "json",
+            data: bData,
+            success: function (resp) {
+                showSuccessTips(resp.msg);
+                var url = "asset/consume";
+                showConsumeInfo(url, 1);
+            },
+            error: function (jqXHR, textStatus, errorThrown) {
+                showErrorTips();
+            }
+        });
+    });
+}
+
+function formatConsumeOperInfo(aData, in_or_out) {
+    var in_out_str = "in";
+    if (in_or_out == 1) {
+        in_out_str = "out";
+    }
+    var enlist = getAssetConsumeInEnlist();
+    var d_len = enlist.length;
+    var before_val = "";
+    var after_val = "";
+    for (var i = 0; i < d_len; i++) {
+        if (enlist[i] == "consume_num1") {
+            before_val += enlist[i] + ":" + aData[in_out_str + "_" + enlist[i]] + ",";
+            continue;
+        }
+        if (enlist[i] == "consume_num2") {
+            after_val += enlist[i] + ":" + aData[in_out_str + "_" + enlist[i]] + ",";
+            continue;
+        }
+        before_val += enlist[i] + ":" + aData[in_out_str + "_" + enlist[i]] + ",";
+        after_val += enlist[i] + ":" + aData[in_out_str + "_" + enlist[i]] + ",";
+    }
+    var params = {};
+    var asset_id = 'asset_id';
+    params['oper_type'] = "字段变更";
+    params['text'] = "";
+    params['before_field'] = before_val;
+    params['after_field'] = after_val;
+    saveOperInfo(params);
+}
+
+
+function consumeOut() {
+    window.edit_form = $("#edit-form").html();
+    window.oper_form = $("#oper-form").html();
+    $('#consume_out').empty();
+    var chlist = getAssetConsumeOutChlist();
+    var enlist = getAssetConsumeOutEnlist();
+    var content = constructActualConsumeAdd(chlist, enlist, 1);
+    $('#consume_out').append(content);
+    $('#consume_out').find("textarea[name='out_remark']").val('出库');
+    $('#consume_out').find("input[name='out_consume_num1']").attr("readonly", "true");
+    getSelectValue('out_store_place', '/asset_info/loadstate/3', '请选择从哪个库出库');
+    getSelectValue('out_store_place2', '/asset_info/loadstate/3', '请选择到那个库');
+    getSelectValue('out_store_state', '/asset_info/loadstate/2', '请选择资产状态');
+    initPhoneOutDom();
+    $('#out_store_place').change(function () {
+        if ($('#out_store_place').val().substr(0, 1) != "请") {
+            constructPostParams(1);
+        }
+    });
+    $('#out_save').click(function () {
+        var thisForm = $("#consume_out").find("form");
+        if (!thisForm.valid()) {
+            return;
+        }
+//      这里把新增入库的信息处理一下。
+        var postData = thisForm.serializeArray();
+        var bData = formatbData(postData, 1);
+        console.log(bData);
+        $.ajax({
+            type: "POST",
+            url: "consume/out",
+            dataType: "json",
+            data: bData,
+            success: function (resp) {
+                showSuccessTips(resp.msg);
+                var url = "asset/consume";
+                showConsumeInfo(url, 1);
+            },
+            error: function (jqXHR, textStatus, errorThrown) {
+                showErrorTips();
+            }
+        });
+    });
+}
+
+//构造新增入库模版
+function constructActualConsumeAdd(chlist, enlist, in_or_out) {
+    var content = "<form>";
+    var d_len = chlist.length;
+    for (var i = 0; i < d_len; i++) {
+        var in_out_str = "in";
+        if (in_or_out == 1) {
+            in_out_str = "out";
+        }
+        var value = in_out_str + "_" + enlist[i];
+        content += '<div class="form-group col-xs-9">';
+        content += $.parseStr('<label class="col-xs-3 control-label no-padding-right" for="%s" style="width: 100px">%s：</label>',
+                value, chlist[i]);
+        content += '<div class="col-xs-6">';
+        var in_content = '';
+        if (enlist[i] == 'remark') {
+            in_content = $.parseStr('<textarea name="%s" class="col-xs-12" style="height:100px;"></textarea>',
+                    value);
+        } else if (enlist[i] == 'asset_type') {
+            in_content = assetTypeDiv(value, in_out_str + "_" + enlist[i] + "_tree");
+        } else {
+            if (allSelect(enlist[i])) {
+                in_content = formatSelect(value, chlist[i]);
+            } else {
+                in_content = $.parseStr('<input class="col-xs-12" type="text" name="%s" placeholder="请输入%s">',
+                        value, chlist[i]);
+            }
+        }
+        content += in_content;
+        content += '</div>';
+        content += '</div>';
+        content += '<div class="space-4"></div>';
+    }
+    content += formatButton(in_or_out);
+    content += "</form>";
+    return content;
+}
+
+function formatButton(in_or_out) {
+    var save_button = "in_save";
+    var quit_button = "in_quit";
+    if (in_or_out == 1) {
+        save_button = "out_save";
+        quit_button = "out_quit";
+    }
+    var content = "";
+    content += '<div id="in_out_save" class="form-group col-xs-9">';
+    content += '<label>　　　　　　　　　　　　　　　　　　　　　 　　 </label>';
+    content += $.parseStr('<button class="btn btn-primary center" ' +
+            'style="margin-top:10px;" type="button" id="%s">', save_button);
+    content += '<i class="icon-ok bigger-110"></i>';
+    content += '保存';
+    content += '</button>';
+    content += '<label>　 </label>';
+    content += $.parseStr('<button class="btn center" type="button" ' +
+            'style="margin-top:10px;" id="%s">', quit_button);
+    content += '<i class="icon-undo bigger-110"></i>';
+    content += '取消';
+    content += '</button>';
+    content += '</div>';
+    return content;
+}
+
+function formatSelect(value1, value2) {
+    var selectContent = $.parseStr('<select name="%s" class="chosen-container ' +
+            'chosen-container-single chosen-container-single-nosearch ' +
+            'chosen-with-drop chosen-container-active" ' +
+            'style="width: 0px; margin: 0px 0px 4px;"' +
+            'id="%s"><option value="%s" selected="selected">请选择%s</option></select>',
+            value1, value1, value2, value2);
+    return selectContent;
+}
+
+function allSelect(selectVal) {
+    if (selectVal == 'store_place' ||
+            selectVal == 'store_place1' ||
+            selectVal == 'store_place2' ||
+            selectVal == 'store_state' ||
+            selectVal == 'provider' ||
+            selectVal == 'model') {
+        return true;
+    }
+    return false;
+}
+
+function formatbData(postData, in_or_out) {
+
+    var a_len = postData.length;
+    var bData = {};
+    for (var i = 0; i < a_len; i++) {
+
+        var name = postData[i].name;
+        if (in_or_out == 1) {
+            name = name.substr(4);
+        } else {
+            name = name.substr(3);
+        }
+        bData[name] = postData[i].value;
+    }
+    return bData;
+}
+
+
+function getSelectValNum(formId, name, url, params) {
+    //  下拉框值从数据库选择,并且设置默认值
+    $.ajax({
+        "dataType": 'json',
+        "type": "POST",
+        "url": url,
+        'data': params,
+        "success": function (resp) {
+            console.log(resp);
+            console.log($("#" + formId).find("input[name='" + name + "']"));
+            $("#" + formId).find("input[name='" + name + "']").val(resp);
+        },
+        error: function (resp) {
+            showErrorTips();
+        }
+    });
+}
+
+function constructPostParams(in_or_out) {
+    var formId = "consume_in";
+    var in_out_str = "in_";
+    if (in_or_out == 1) {
+        formId = "consume_out";
+        in_out_str = "out_";
+    }
+    var thisForm = $("#" + formId).find("form");
+    var list = ["asset_type", "provider", "model", "store_place"];
+    var params = {};
+    for (var i = 0; i < 4; i++) {
+        params[list[i]] = $("#" + in_out_str + list[i]).val();
+    }
+
+    getSelectValNum(formId, in_out_str + "consume_num1", "consume/num", params);
+}
+
+
+function validateForm(form) {
+
+    var validator = form.validate({
+        errorClass: 'error-label',
+        focusInvalid: true,
+        onfocusout: function (element) {
+            if (!this.checkable(element)) {
+                this.element(element);
+            }
+        },
+        onkeyup: function (element) {
+            if (!this.checkable(element) && $(element).attr('name') != 'apptree') {
+                this.element(element);
+            }
+        },
+        rules: {
+            in_asset_type: {
+                required: true
+            },
+            in_provider: {
+                required: true
+            },
+            in_model: {
+                required: true
+            },
+            in_user_name: {
+                required: true
+            },
+            in_store_place: {
+                required: true
+            },
+            in_consume_num: {
+                required: true
+            }
+        },
+        errorPlacement: function (error, element) {
+            $(element).parent().children(".icon-exclamation").remove();
+            var error_dom = $.parseStr('<i class="%s" title="%s"></i>',
+                    'icon-exclamation tooltip-error', error.html()
+            );
+            $(error_dom).insertAfter(element.parent().children(":last-child"));
+        },
+        success: function (label, element) {
+            $(element).parent().children(".icon-exclamation").remove();
+        },
+        messages: {
+            in_asset_type: {
+                required: "耗材类型不能为空"
+            },
+            in_provider: {
+                required: "品牌不能为空"
+            },
+            in_model: {
+                required: "型号不能为空"
+            },
+            in_user_name: {
+                required: "使用人不能为空"
+            },
+            in_store_place: {
+                required: "存放地点不能为空"
+            },
+            in_consume_num: {
+                required: "耗材数量不能为空"
+            }
+        }
+    });
+    return validator;
+}
+
+
+//键盘搜索
+$("#search_val").keydown(function (e) {
+    if (e.keyCode == 13) {
+        showConsumeInfo('consume/' + $("#search_val").val(), 1);
+    }
+});
+
+
+//查询按钮操作
+$('#query_id').click(function (e) {
+    e.preventDefault();
+    var param = $("#search_val").val().replace(/[\s+\t+]+/ig, "");
+    if (isNull(param)) {
+        showFailTips("查询条件为空，请检查！");
+        return;
+    }
+    showConsumeInfo('consume/' + $("#search_val").val(), 1);
+});
+
+
+</script>
+
+{% endblock %}

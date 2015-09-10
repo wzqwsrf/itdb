@@ -1,0 +1,4 @@
+image: bradrydzewski/python:2.7
+script:
+  - sudo pip install -v tox
+  - tox

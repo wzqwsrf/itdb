@@ -1,0 +1,290 @@
+<!--这段是显示资产信息表格-->
+<div id="exist_asset" style="display:none">
+    <form class="form-horizontal">
+        <div class="row">
+            <div class="col-xs-12">
+                <div class="col-sm-7">
+                    <div class="widget-box">
+                        <div class="widget-header">
+                            <strong> 资产相关信息 </strong>
+                        </div>
+                        <div class="widget-body">
+                            <div class="widget-main" style="padding:12px 3px 12px 3px;">
+                                <!-- 资产信息  -->
+                                <div id="asset_have_info">
+                                </div>
+                            </div>
+                            <!-- widget-main -->
+                        </div>
+                        <!-- widget-body -->
+                    </div>
+                </div>
+                <!-- col-sm-7 -->
+
+                <div class="col-sm-5">
+                    <div class="widget-box">
+                        <div class="widget-header">
+                            <div id="right_title">
+                            </div>
+                        </div>
+                        <!-- widget-header -->
+
+                        <div class="widget-body">
+                            <div class="widget-main">
+                                <!-- 入库信息  -->
+                                <div id="stock_info_right">
+                                </div>
+                            </div>
+                            <!-- widget-main  -->
+
+                            <div class="row">
+                                <div class="col-xs-12">
+                                    <div style="float:right;margin-top:20px;margin-bottom:10px; margin-right:11%;">
+                                        <button class="btn btn-info" type="button"
+                                                onclick="submitFormRight(true);">
+                                            <i class="icon-arrow-right bigger-110"></i>
+                                            提交
+                                        </button>
+                                        <button class="btn btn-info" type="button"
+                                                onclick="submitFormRight(false);">
+                                            <i class="icon-arrow-up bigger-110"></i>
+                                            提交并继续
+                                        </button>
+                                        <button class="btn" type="reset">
+                                            <i class="icon-undo bigger-110"></i>
+                                            重置
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- row -->
+                        </div>
+                        <!-- widget-body -->
+                    </div>
+                    <!-- widget-box -->
+                </div>
+                <!-- col-sm-5 -->
+            </div>
+            <!-- col-xs-12 -->
+        </div>
+        <!-- row -->
+    </form>
+</div>
+
+<div class="row" id="operate" style="display: none">
+    <div class="col-xs-12">
+        <div style="float:right;margin-top:20px;margin-bottom:10px; margin-right:11%;">
+            <button class="btn btn-info" type="button"
+                    onclick="submitNewAssetInfo(true);">
+                <i class="icon-arrow-right bigger-110"></i>
+                提交
+            </button>
+            <button class="btn btn-info" type="button"
+                    onclick="submitNewAssetInfo(false);">
+                <i class="icon-arrow-up bigger-110"></i>
+                提交并继续
+            </button>
+            <button class="btn" type="reset">
+                <i class="icon-undo bigger-110"></i>
+                重置
+            </button>
+        </div>
+    </div>
+</div>
+<!--这部分是查询按钮框-->
+<div id="query_button" class="row" style="margin-bottom: 10px;display:none">
+    <div id="searchBox">
+        <div class="form-group">
+            <div class="col-xs-7">
+                <div class="input-group">
+                    <input type="text" id="search_val" class="form-control search-query"
+                           placeholder="请输入资产编号或SN或mac地址或rtx_id或员工编号"/>
+                        <span class="input-group-btn">
+                            <button id="query_id" type="button" class="btn btn-info btn-sm">
+                                查询
+                                <i class="icon-search icon-on-right bigger-110"></i>
+                            </button>
+                        </span>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- search box  -->
+</div>
+
+<script src="{{static_url}}/js/dialog_common.js"></script>
+
+<script type="text/javascript">
+
+    // 表单提交：新增设备入库
+    function submitNewAssetInfo(isGoOn) {
+
+        var thisForm = $("#stock_new_in").find("form");
+        if (!thisForm.valid()) {
+            return;
+        }
+//      这里把新增入库的信息处理一下。
+        var postData = thisForm.serializeArray();
+        var bData = formatbData(postData);
+        if (!isNull(bData["mac"])) {
+            var expre = /[A-F\d]{2}-[A-F\d]{2}-[A-F\d]{2}-[A-F\d]{2}-[A-F\d]{2}-[A-F\d]{2}/;
+            var regexp = new RegExp(expre);
+            var mac = bData["mac"].toUpperCase();
+            if (!regexp.test(mac)) {
+                showFailTips("MAC地址错误或含有非法字符，请检查");
+                return;
+            }
+        }
+//        if(!hasUserName(bData["user_name"])){
+//            console.log(false);
+//            return;
+//        }
+        $.ajax({
+            type: "POST",
+            url: "new/add",
+            dataType: "json",
+            data: postData,
+            success: function (resp) {
+                var id = resp.msg;
+                var msg = resp.msg;
+                if (msg == -1) {
+                    msg = "添加耗材类数据失败！";
+                }
+                if (!isNaN(msg)) {
+                    msg = "添加耗材类数据成功！";
+                }
+                if (resp.success) {
+                    showSuccessTips(msg);
+                    formatNewOperInfo(bData, id);
+                    location.reload();
+                    if (!isGoOn) {
+                        // 清空表单
+                        thisForm[0].reset();
+                    }
+
+//
+                } else {
+                    showFailTips(msg);
+                }
+            },
+            error: function (jqXHR, textStatus, errorThrown) {
+                showErrorTips();
+            }
+        });
+    }
+
+
+    // 表单提交:已有设备入库
+    function submitFormRight(isGoOn) {
+        var thisForm = $("#stock_info_right").find("form");
+        if (!thisForm.valid()) {
+            return;
+        }
+        if (isNull($('#search_val').val())) {
+            showFailTips('还没有选择数据，无法出入库');
+            return;
+        }
+        var postData = $("#stock_have_device").find("form").serializeArray();
+        var bData = formatbData(postData);
+        bData['device_states'] = $('#device_states').val();
+        if (bData['store_states'] == undefined) {
+            bData['store_states'] = bData['store_state']
+        }
+        if (bData['device_states'] == undefined) {
+            bData['device_states'] = bData['device_state']
+        }
+        if (bData['store_state'] == '库存') {
+            bData['store_states'] = '在用'
+        } else if (bData['store_state'] == '在用') {
+            bData['store_states'] = '库存'
+        }
+        if (bData['in_out_reasons'] == '资产调拨') {
+            bData['store_states'] = '库存';
+        }
+
+        $.ajax({
+            type: "POST",
+            url: "/asset_info/old/add",
+            dataType: "json",
+            data: bData,
+            success: function (resp) {
+                if (resp.success) {
+                    showSuccessTips(resp.msg);
+                    if (!isGoOn) {
+                        // 清空表单
+                        thisForm[0].reset();
+                        $("#search_val").val("");
+                        //TODO:跳转到资产管理
+//                        window.location.href = '/asset_manager/asset_manager';
+//                      数据插入成功，再记录操作日志
+                    }
+                    formatOldOperInfo(bData);
+                    location.reload();
+                } else {
+                    showFailTips(resp.msg);
+                }
+            },
+            error: function (jqXHR, textStatus, errorThrown) {
+                showErrorTips();
+            }
+        });
+    }
+
+    function formatNewOperInfo(aData, consume_id) {
+        var list = getActualEnChList(aData['asset_type']);
+        var enlist = list[0];
+        var d_len = enlist.length;
+        var before_val = "";
+        var after_val = "";
+        for (var i = 0; i < d_len; i++) {
+            before_val += enlist[i] + ":" + "" + ",";
+            after_val += enlist[i] + ":" + aData[enlist[i]] + ",";
+        }
+        before_val += 'store_state' + ":" + "" + ",";
+        after_val += 'store_state' + ":" + '库存' + ",";
+        var params = {};
+        var asset_id = 'asset_id';
+        if (!isNull(aData['asset_id'])) {
+            params['asset_id'] = aData['asset_id'];
+        } else if (!isNull(aData['phone_no'])) {
+            params['asset_id'] = aData['phone_no'];
+        } else {
+            params['asset_id'] = consume_id;
+            before_val += "id" + ":" + "" + ",";
+            after_val += "id" + ":" + consume_id + ",";
+        }
+        params['oper_type'] = "新增入库";
+        params['text'] = "";
+        params['before_field'] = before_val;
+        params['after_field'] = after_val;
+        saveOperInfo(params);
+    }
+
+    function formatOldOperInfo(aData) {
+
+        var enlist = getAssetInfoOldEnlist();
+        var d_len = enlist.length;
+        var before_val = "";
+        var after_val = "";
+        var rightList = getAssetInfoInEnRight();
+        for (var i = 0; i < d_len; i++) {
+            before_val += enlist[i] + ":" + aData[enlist[i]] + ",";
+            if (containsValue(rightList, enlist[i]) || enlist[i] == 'store_state') {
+                after_val += enlist[i] + ":" + aData[enlist[i] + 's'] + ",";
+            } else {
+                after_val += enlist[i] + ":" + aData[enlist[i]] + ",";
+            }
+        }
+        var params = {};
+        var asset_id = 'asset_id';
+        params['asset_id'] = $("#asset_have_info").find("input[name='" + asset_id + "']").val();
+        params['oper_type'] = "字段变更";
+        params['text'] = "";
+        params['before_field'] = before_val;
+        params['after_field'] = after_val;
+        console.log(params);
+        saveOperInfo(params);
+    }
+
+
+</script>

@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+        <meta charset="utf-8">
+        <title>ITDB</title>
+
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+        <!-- basic styles -->
+
+        <link href="{{static_url}}/ace/css/bootstrap.min.css" rel="stylesheet">
+        <link rel="stylesheet" href="{{static_url}}/ace/css/jquery-ui-1.10.3.full.min.css">
+        <link rel="stylesheet" href="{{static_url}}/ace/css/font-awesome.min.css">
+
+        <!--[if IE 7]>
+          <link rel="stylesheet" href="{{static_url}}/ace/css/font-awesome-ie7.min.css" />
+        <![endif]-->
+
+        <!-- page specific plugin styles -->
+
+        <!-- fonts -->
+
+        <!-- TODO: remove googleapi -->
+        <!--<link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Open+Sans:400,300" />-->
+
+        <!-- ace styles -->
+
+        <link rel="stylesheet" href="{{static_url}}/ace/css/ace.min.css">
+        <link rel="stylesheet" href="{{static_url}}/ace/css/ace-rtl.min.css">
+        <link rel="stylesheet" href="{{static_url}}/ace/css/ace-skins.min.css">
+
+        <!--[if lte IE 8]>
+          <link rel="stylesheet" href="{{static_url}}/ace/css/ace-ie.min.css" />
+        <![endif]-->
+
+        <!-- inline styles related to this page -->
+
+        <!-- ace settings handler -->
+
+        <script src="{{static_url}}/ace/js/ace-extra.min.js"></script>
+
+        <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+
+        <!--[if lt IE 9]>
+        <script src="{{static_url}}/ace/js/html5shiv.js"></script>
+        <script src="{{static_url}}/ace/js/respond.min.js"></script>
+        <![endif]-->
+
+    <body style="" screen_capture_injected="true">
+        <div class="navbar navbar-default" id="navbar">
+            <script type="text/javascript">
+                try{ace.settings.check('navbar' , 'fixed')}catch(e){}
+            </script>
+
+            <div class="navbar-container" id="navbar-container">
+                <div class="pull-left" style="color: white; font-size: 18px; padding: 9px">
+                    <small>
+                        <i class="icon-leaf"></i>
+                        ITDB
+                    </small>
+                </div>
+            </div><!-- /.container -->
+        </div>
+
+        <div class="main-container" id="main-container">
+            <script type="text/javascript">
+                try{ace.settings.check('main-container' , 'fixed')}catch(e){}
+            </script>
+
+            <div class="main-container-inner">
+
+            <div style="margin-top:150px; text-align:center">
+            <button id="qsso-login" type="button" class="width-35  btn btn-success btn-primary">
+                <i class="icon-key"></i>
+               QSSO
+            </button>
+            <script src="https://qsso.corp.qunar.com/lib/qsso-auth.js?t=<?=rand()?>"></script>
+            </div>
+                <!-- /.main-content -->
+
+                <!-- /#ace-settings-container -->
+            </div><!-- /.main-container-inner -->
+
+        </div><!-- /.main-container -->
+
+        <!-- basic scripts -->
+
+        <!--[if !IE]> -->
+
+        <!--<script src="http://ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>-->
+        <script src="http://lib.sinaapp.com/js/jquery/2.0.3/jquery-2.0.3.min.js"></script>
+
+        <!-- <![endif]-->
+
+        <!--[if IE]>
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+<![endif]-->
+
+        <!--[if !IE]> -->
+
+        <script type="text/javascript">
+            window.jQuery || document.write("<script src='{{static_url}}/ace/js/jquery-2.0.3.min.js'>"+"<"+"/script>");
+        </script>
+
+        <!-- <![endif]-->
+
+        <!--[if IE]>
+<script type="text/javascript">
+ window.jQuery || document.write("<script src='{{static_url}}/js/jquery-1.10.2.min.js'>"+"<"+"/script>");
+</script>
+<![endif]-->
+
+        <script type="text/javascript">
+            if("ontouchend" in document) document.write("<script src='{{static_url}}/ace/js/jquery.mobile.custom.min.js'>"+"<"+"/script>");
+        </script>
+        <script src="{{static_url}}/ace/js/bootstrap.min.js"></script>
+        <script src="{{static_url}}/ace/js/typeahead-bs2.min.js"></script>
+
+        <!-- page specific plugin scripts -->
+
+        <!-- ace scripts -->
+
+        <script src="{{static_url}}/ace/js/ace-elements.min.js"></script>
+        <script src="{{static_url}}/ace/js/ace.min.js"></script>
+        <!-- inline scripts related to this page -->
+   
+        <script>
+            // 调用QSSO.attach进行登录参数的设置，如：设置绑定登录事件的HTML元素，接收token的登录接口URI。
+            QSSO.attach('qsso-login','{{url_for('index.login', ret=request.args.get('ret'))}}');
+            // attach函数会将HTMLid为qsso-login的元素onclick时自动去qsso登录，当用户用户点击上面的button，会跳到qsso登录页面,用户在qsso登录后将会把token值post到http://xxx.qunar.com/login.php上。
+        </script>
+</body></html>

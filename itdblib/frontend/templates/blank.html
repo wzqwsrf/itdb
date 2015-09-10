@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <title>ITDB - {{ pageTitle }}</title>
+
+    <meta name="description" content=""/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+
+    <!-- basic styles -->
+
+    <link href="{{static_url}}/ace/css/bootstrap.min.css" rel="stylesheet"/>
+    <link rel="stylesheet" href="{{static_url}}/ace/css/jquery-ui-1.10.3.full.min.css"/>
+    <link rel="stylesheet" href="{{static_url}}/ace/css/font-awesome.min.css"/>
+    <link rel="stylesheet" href="{{static_url}}/ace/css/chosen.css"/>
+    <link rel="stylesheet" href="{{static_url}}/ace/css/jquery.gritter.css"/>
+
+    <!--[if IE 7]>
+    <link rel="stylesheet" href="{{static_url}}/ace/css/font-awesome-ie7.min.css"/>
+    <![endif]-->
+
+    <!-- page specific plugin styles -->
+
+    <!-- ace styles -->
+
+    <link rel="stylesheet" href="{{static_url}}/ace/css/ace.min.css"/>
+    <link rel="stylesheet" href="{{static_url}}/ace/css/ace-rtl.min.css"/>
+    <link rel="stylesheet" href="{{static_url}}/ace/css/ace-skins.min.css"/>
+
+    <!--[if lte IE 8]>
+    <link rel="stylesheet" href="{{static_url}}/ace/css/ace-ie.min.css"/>
+    <![endif]-->
+
+    <!-- inline styles related to this page -->
+
+    <!-- ace settings handler -->
+
+    <script src="{{static_url}}/ace/js/ace-extra.min.js"></script>
+
+    <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+
+    <!--[if lt IE 9]>
+    <script src="{{static_url}}/ace/js/html5shiv.js"></script>
+    <script src="{{static_url}}/ace/js/respond.min.js"></script>
+    <![endif]-->
+    {% block header %}
+    {% endblock %}
+
+    <style type="text/css">
+        body {
+            font-family: Arial, 'Times New Roman', 'Microsoft YaHei', SimSun;
+        }
+    </style>
+</head>
+
+<body>
+{% include "header.html"%}
+<div class="main-container" id="main-container">
+    <script type="text/javascript">
+        try {
+            ace.settings.check('main-container', 'fixed')
+        } catch (e) {
+        }
+    </script>
+
+    <div class="main-container-inner">
+        <a class="menu-toggler" id="menu-toggler" href="#">
+            <span class="menu-text"></span>
+        </a>
+
+        <div class="sidebar" id="sidebar">
+            <script type="text/javascript">
+                try {
+                    ace.settings.check('sidebar', 'fixed')
+                } catch (e) {
+                }
+            </script>
+
+            <ul class="nav nav-list">
+                <li
+                {% if request.blueprint == 'index' %}class="active"{% endif %}>
+                <a href="{{url_for('index.index')}}">
+                    <i class="icon-home"></i>
+                    <span class="menu-text">首页</span>
+                </a>
+                </li>
+
+                <li
+                {% if request.blueprint == 'stock_in'%}class="active"{% endif %}>
+                <a href="{{url_for('stock_in.stockIn')}}">
+                    <i class="icon-edit"></i>
+                    <span class="menu-text">入库</span>
+                </a>
+                </li>
+
+                <li
+                {% if request.blueprint == 'stock_out'%}class="active"{% endif %}>
+                <a href="{{url_for('stock_out.stockOut')}}">
+                    <i class="icon-share-alt"></i>
+                    <span class="menu-text">出库</span>
+                </a>
+                </li>
+
+                <li
+                {% if request.blueprint == 'asset_manager'%}class="active"{% endif %}>
+                <a href="{{url_for('asset_manager.assetManager')}}">
+                    <i class="icon-cogs"></i>
+                    <span class="menu-text">资产管理</span>
+                </a>
+                </li>
+
+                <li
+                {% if request.blueprint == 'asset_consume'%}class="active"{% endif %}>
+                <a href="{{url_for('asset_consume.assetConsume')}}">
+                    <i class="icon-leaf"></i>
+                    <span class="menu-text">耗材管理</span>
+                </a>
+                </li>
+
+                <li
+                {% if request.blueprint == 'asset_phone'%}class="active"{% endif %}>
+                <a href="{{url_for('asset_phone.assetPhone')}}">
+                    <i class="icon-key"></i>
+                    <span class="menu-text">号码管理</span>
+                </a>
+                </li>
+
+                <li
+                {% if request.blueprint == 'attribute_manager'%}class="active"{% endif %}>
+                <a href="{{url_for('attribute_manager.attributeManager')}}">
+                    <i class="icon-cog"></i>
+                    <span class="menu-text">属性管理</span>
+                </a>
+                </li>
+
+            </ul>
+            <!-- /.nav-list -->
+
+            <div class="sidebar-collapse" id="sidebar-collapse">
+                <i class="icon-double-angle-left" data-icon1="icon-double-angle-left"
+                   data-icon2="icon-double-angle-right"></i>
+            </div>
+
+            <script type="text/javascript">
+                try {
+                    ace.settings.check('sidebar', 'collapsed')
+                } catch (e) {
+                }
+            </script>
+        </div>
+
+        <div class="main-content">
+            <div class="breadcrumbs" id="breadcrumbs">
+                <script type="text/javascript">
+                    try {
+                        ace.settings.check('breadcrumbs', 'fixed')
+                    } catch (e) {
+                    }
+                </script>
+
+                <ul class="breadcrumb">
+                    <li>
+                        <i class="icon-home home-icon"></i>
+                        <a href="{{url_for('index.index')}}">首页</a>
+                    </li>
+                    <li class="active">{{ pageTitle }}</li>
+                </ul>
+                <!-- .breadcrumb -->
+
+            </div>
+            <div class="page-content">
+                <!-- PAGE CONTENT BEGINS -->
+                {% block body %} {% endblock %}
+                <!-- PAGE CONTENT ENDS -->
+            </div>
+            <!-- /.page-content -->
+        </div>
+        <!-- /.main-content -->
+    </div>
+    <!-- /.main-container-inner -->
+
+    <a href="#" id="btn-scroll-up" class="btn-scroll-up btn btn-sm btn-inverse">
+        <i class="icon-double-angle-up icon-only bigger-110"></i>
+    </a>
+</div>
+<!-- /.main-container -->
+
+<!-- basic scripts -->
+
+<!--[if !IE]> -->
+<script src="{{static_url}}/ace/js/jquery-2.0.3.min.js"></script>
+<!-- <script src="{{static_url}}/ace/js/jquery-ui-1.10.3.full.min.js"></script>-->
+<script src="{{static_url}}/ace/js/chosen.jquery.min.js"></script>
+<!-- <![endif]-->
+<!--[if IE]>
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+<![endif]-->
+
+<!--[if !IE]> -->
+
+<script type="text/javascript">
+    window.jQuery || document.write("<script src='{{static_url}}/ace/js/jquery-2.0.3.min.js'>" + "<" + "/script>");
+</script>
+
+<!-- <![endif]-->
+
+<!--[if IE]>
+<script type="text/javascript">
+    window.jQuery || document.write("<script src='/static/js/jquery-1.10.2.min.js'>" + "<" + "/script>");
+</script>
+<![endif]-->
+
+<script type="text/javascript">
+    if ("ontouchend" in document) document.write("<script src='{{static_url}}/ace/js/jquery.mobile.custom.min.js'>" + "<" + "/script>");
+</script>
+<script src="{{static_url}}/ace/js/bootstrap.min.js"></script>
+<script src="{{static_url}}/ace/js/typeahead-bs2.min.js"></script>
+
+<!-- page specific plugin scripts -->
+<script src="{{static_url}}/ace/js/jquery.sparkline.min.js"></script>
+
+<!-- ace scripts -->
+
+<script src="{{static_url}}/ace/js/ace-elements.min.js"></script>
+<script src="{{static_url}}/ace/js/ace.min.js"></script>
+<script src="{{static_url}}/ace/js/jquery.gritter.min.js"></script>
+<script src="{{static_url}}/ace/js/jquery.validate.min.js"></script>
+<!-- inline scripts related to this page -->
+{% block js %}
+{% endblock %}
+
+</body>
+</html>

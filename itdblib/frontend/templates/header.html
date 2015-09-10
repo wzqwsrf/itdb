@@ -1,0 +1,26 @@
+<div class="navbar navbar-default" id="navbar">
+    <script type="text/javascript">
+        try{ace.settings.check('navbar' , 'fixed')}catch(e){}
+    </script>
+
+    <div class="navbar-container" id="navbar-container">
+        <div class="pull-left" style="color: white; font-size: 18px; padding: 9px">
+                <small>
+                    <i class="icon-cloud"></i>
+                    ITDB
+                </small>
+        </div>
+
+        <div class="pull-right" style="color: white; font-size: 16px; padding: 10px">
+            <i class="icon-user"></i>
+            <span>
+                {{current_user}}&nbsp
+            </span>
+
+            <a href="{{url_for('index.logout', ret=request.url)}}" style="color: white; font-size: 16px">
+                <i class="icon-off"></i>
+                注销
+            </a>
+        </div>
+    </div>
+</div>

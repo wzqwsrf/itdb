@@ -1,0 +1,966 @@
+{% extends "blank.html" %}
+
+{% block header %}
+<link rel="stylesheet" href="{{static_url}}/css/myplugin.css"/>
+<link rel="stylesheet" href="{{static_url}}/zTree/zTreeStyle/zTreeStyle.css"/>
+
+<style type="text/css">
+    #asset-device-list tr.row_selected td, #asset-device-list tr.row_selected th {
+        background-color: #D3D6FF !important;
+    }
+
+    #storehouse_list tr.row_selected td, #storehouse_list tr.row_selected th {
+        background-color: #D3D6FF !important;
+    }
+
+    /*
+     * 树状样式
+    */
+    .asset_type_tree {
+        overflow: auto
+    }
+
+    /*
+     * 菜单样式
+    */
+    div#rMenu {
+        position: fixed;
+        visibility: hidden;
+        top: 0;
+        text-align: left;
+        padding: 2px;
+        box-sizing: content-box;
+        width: 100px;
+        -webkit-box-shadow: rgba(0, 0, 0, 0.2) 0 2px 4px;
+        box-shadow: rgba(0, 0, 0, 0.2) 0 2px 4px;
+        background-color: rgb(255, 255, 255);
+        border: 1px solid rgba(0, 0, 0, 0.2);
+        border-image-source: initial;
+        border-image-slice: initial;
+        border-image-width: initial;
+        border-image-outset: initial;
+        border-image-repeat: initial;
+    }
+
+    div#rMenu ul {
+        margin: 0px;
+        padding: 0px
+    }
+
+    div#rMenu ul li {
+        margin: 0px;
+        padding: 2px 10px;
+        cursor: pointer;
+        color: rgb(68, 68, 68);
+        font-weight: 500;
+        font-size: 13px;
+        font-family: "Open Sans";
+        list-style: none outside none;
+        background-color: rgb(255, 255, 255);
+    }
+
+    div#rMenu ul li:hover {
+        color: white;
+        background-color: #428BCA;
+    }
+</style>
+{% endblock %}
+
+{% block body %}
+<!-- 页面布局  -->
+<div class="row">
+    <div class="col-xs-12">
+        <!-- PAGE CONTENT BEGINS -->
+
+        <div>
+            <ul class="nav nav-tabs" id="myTab">
+                <li class="active">
+                    <a data-toggle="tab" href="#device-list">
+                        <i class="green icon-home bigger-110"></i>
+                        设备类型列表
+                    </a>
+                </li>
+
+                <li>
+                    <a data-toggle="tab" href="#device-edit">
+                        <i class="green icon-edit bigger-110"></i>
+                        库房信息列表
+                    </a>
+                </li>
+                <li>
+                    <a data-toggle="tab" href="#store-state" onclick="showStoreStateTable()">
+                        <i class="green icon-edit bigger-110"></i>
+                        资产状态编辑
+                    </a>
+                </li>
+
+                <li>
+                    <a data-toggle="tab" href="#device-state" onclick="showDeviceStateTable()">
+                        <i class="green icon-edit bigger-110"></i>
+                        设备状态编辑
+                    </a>
+                </li>
+
+            </ul>
+
+            <div class="tab-content">
+                <div id="device-list" class="tab-pane in active">
+                    <!-- 资产类型列表区域  -->
+                    <div class="row">
+                        <div class="col-xs-6">
+                            <!-- 使用dataTable来进行展示  -->
+                            <div class="table-header">
+                                现有设备类型列表
+                            </div>
+
+                            <div class="table-responsive">
+                                <table id="asset-device-list" class="table table-striped table-bordered table-hover">
+                                </table>
+                            </div>
+                        </div>
+
+                        <div class="col-xs-6">
+                            <form class="form-horizontal" role="form">
+                                <div>
+                                    <input type="text" class="col-xs-12" id="type_node" name="typeNode">
+
+                                    <div class="clearfix"></div>
+                                    <div>
+                                        <!-- zTree -->
+                                        <div class="zTreeDemoBackground left">
+                                            <ul id="asset_type_tree"
+                                                style="height:200px;border:1px dashed #B9C0C5;margin-left:0;"
+                                                class="ztree asset_type_tree"></ul>
+                                        </div>
+
+                                        <!-- 右键菜单 -->
+                                        <div id="rMenu">
+                                            <ul>
+                                                <li id="m_add_asset_class" onclick="addAssetClass()">添加资产信息
+                                                <li>
+                                                    <!--
+                                                    <li id="m_remove_asset_class" onclick="removeAssetClass()">删除<li>
+                                                    <li id="m_rename_asset_class" onclick="renameAssetClass()">重命名<li>
+                                                    -->
+                                            </ul>
+                                        </div>
+
+                                        <!-- zTree树：增加、修改 对话框 -->
+                                        <div id="ltree_option" class="hide"></div>
+                                    </div>
+                                </div>
+                            </form>
+                            <!-- col-xs-5 -->
+                        </div>
+                    </div>
+                </div>
+
+                <div id="device-edit" class="tab-pane">
+                    <div class="row">
+                        <div class="col-xs-6">
+                            <!-- 使用dataTable来进行展示  -->
+                            <div class="table-header">
+                                现有库房信息列表
+                            </div>
+
+                            <div class="table-responsive">
+                                <table id="storehouse_list" class="table table-striped table-bordered table-hover">
+                                </table>
+                            </div>
+                        </div>
+                        <div class="col-xs-6" id="add_store_house_msgs" style="border:1px dashed #B9C0C5;">
+                            <div class="space-4"></div>
+                            <form class="form-horizontal" role="form">
+                                <div class="form-group">
+                                    <label class="col-xs-2 control-label no-padding-right"
+                                           style="text-align:right;">库房地点：</label>
+                                    <input type="text" placeholder="请输入库房地点"
+                                           name="store_place"
+                                           class="col-sm-4">
+
+                                </div>
+                                <div class="form-group">
+                                    <label class="col-xs-2 control-label no-padding-right"
+                                           style="text-align:right;">库房管理员：</label>
+                                    <input type="text" placeholder="请输入库房管理员"
+                                           name="admin_name"
+                                           class="col-sm-4">
+                                </div>
+                            </form>
+                            <div class="space-4"></div>
+
+                            <div style="margin-top:10px;margin-bottom:10px;margin-left:210px;">
+                                <button class="btn btn-info" type="button" onclick="submitFormStorePlace(false);">
+                                    <i class="icon-arrow-right bigger-110"></i>
+                                    提交
+                                </button>
+                                <button class="btn btn-info" type="button" onclick="submitFormStorePlace(true);">
+                                    <i class="icon-arrow-up bigger-110"></i>
+                                    提交并继续
+                                </button>
+                                <button class="btn" type="reset">
+                                    <i class="icon-undo bigger-110"></i>
+                                    重置
+                                </button>
+                            </div>
+                            <!--</form>-->
+                        </div>
+                    </div>
+                </div>
+
+                <div id="store-state" class="tab-pane">
+                    <div class="row">
+                        <div class="col-xs-6">
+                            <div class="table-header">
+                                现有资产状态列表
+                            </div>
+                            <table id="store_state_table" class="table table-striped table-bordered table-hover">
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <div id="device-state" class="tab-pane">
+                    <div class="row">
+                        <div class="col-xs-6">
+                            <div class="table-header">
+                                现有设备状态列表
+                            </div>
+                            <table id="device_state_table" class="table table-striped table-bordered table-hover">
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- tab-content -->
+        </div>
+        <!-- tabbable -->
+    </div>
+    <!-- col-xs-12 -->
+</div> <!-- row -->
+
+<div id="common-notice-dialog" class="hide"></div>
+
+{% endblock %}
+
+{% block js %}
+<!-- 导入表单验证插件 -->
+<script src="{{static_url}}/js/utils.js"></script>
+<script src="{{static_url}}/MyPlugin/jquery-ui.1.10.3.full.my.js"></script>
+<script src="{{static_url}}/MyPlugin/jquery.myplugin.js"></script>
+
+<!-- 导入dataTable插件 -->
+<script src="{{static_url}}/ace/js/jquery.dataTables.min.js"></script>
+<script src="{{static_url}}/ace/js/jquery.dataTables.bootstrap.js"></script>
+<script src="{{static_url}}/js/dialog_common.js"></script>
+<script src="{{static_url}}/js/utils.js"></script>
+<!-- 导入ztree插件 -->
+<script src="{{static_url}}/zTree/jquery.ztree.all-3.5.min.js"></script>
+
+<!-- js函数 -->
+<script type="text/javascript">
+    jQuery(function ($) {
+        loadAssetTypeList();
+        loadStorehouseInfos();
+        autoShowInfo('add_store_house_msgs', 'admin_name');
+        /*
+         * 初始化ztree
+         */
+        window.zTree;
+        window.setting = {
+            view: {
+                dblClickExpand: false,
+                selectedMulti: false,
+                showTitle: false,
+                showIcon: true
+            },
+            data: {
+                keep: {
+                    parent: false,
+                    leaf: false
+                },
+                simpleData: {
+                    enable: true,
+                    idkey: 'id',
+                    pIdKey: 'pId',
+                    rootPId: 0
+                }
+            },
+            edit: {
+                editNameSelectAll: true
+            },
+            callback: {
+                onClick: getLTreePath,
+                onRightClick: onRightClick
+            }
+        };
+
+        // 加载树
+        loadAssetTree();
+
+        window.rMenu = $("#rMenu");
+
+        // 表单校验
+        createFormValidate($("#add_store_house_msgs").find("form"));
+    });
+
+    /*
+     * 定义dataTable样式
+     */
+    $.extend(true, $.fn.dataTable.defaults, {
+        "sDom": "<'row'<'col-sm-6'l><'col-sm-6'f>r>t<'row'<'col-sm-6'i><'col-sm-6'p>>",
+        "sPaginationType": "bootstrap",
+        "oLanguage": {
+            "sEmptyTable": "无数据",
+            "sProcessing": "正在获取数据，请稍后...",
+            "oPaginate.sFirst": "第一页",
+            "oPaginate.sLast": "最后一页",
+            "oPaginate.sNext": "下一页",
+            "oPaginate.sNext": "上一页",
+            "sInfo": "本页 _START_ - _END_ , 共 _TOTAL_ 条记录",
+            "sInfoEmpty": "本页 0 - 0 , 共 0 条记录",
+            "sSearch": "搜索: ",
+            "sLengthMenu": "共_MENU_记录"
+        }
+    });
+
+    /*
+     * 使用dataTable来展示现有设备类型、品牌、型号
+     */
+    function loadAssetTypeList() {
+        // 清除表单的数据
+        //$("#asset-device-list").html("");
+        var ex = document.getElementById("asset-device-list");
+        if ($.fn.dataTable.fnIsDataTable(ex)) {
+            $(ex).dataTable().fnDestroy();
+        }
+
+        // 定义要展示的列
+        var aoColumns = [
+            {"sTitle": "设备类型", "sName": "asset_type"},
+            {"sTitle": "品牌", "sName": "provider"},
+            {"sTitle": "型号", "sName": "model"}
+        ];
+
+        // 调用dataTable展示
+        var dtTable = $(ex).dataTable({
+            "bFilter": true,        // 是否启用客户端过滤功能
+            "bAutoWidth": false,     // 是否自动计算表格各列宽度
+            "bProcessing": false,    // 指定当正在处理数据的时候，是否显示“正在处理”这个提示信息
+            "bServerSide": false,    // 指定从服务器端获取数据
+            "aoColumns": aoColumns, // 要展示的列
+            "iDisplayLength": 10,   // 用于指定一屏显示的条数，需开启分页器
+            "sAjaxSource": "",      // 指定要从哪个URL获取数据
+            "fnServerData": function (aSource, aDataSet, fnCallback) {  // 指定从服务器端获取数据
+                /*
+                 * dataTable : 注意事项：
+                 * 1. 只能使用GET方法
+                 * 2. url 必须为注册的蓝图，不能使用url_for
+                 *
+                 */
+                $.ajax({
+                    "dataType": 'json',
+                    "type": "GET",
+                    "url": "load_device_type_lists",
+                    "data": aDataSet,
+                    "success": function (resp) {
+                        var aaData = [];
+                        if (resp) {
+                            /*
+                             * 从后端得到的数据必须转换成与aoColumns定义一样的字段
+                             */
+                            var nLen = resp.length;
+                            for (var i = 0; i < nLen; i++) {
+                                var tempList = [];
+                                tempList.push(resp[i]["asset_type"]);
+                                tempList.push(resp[i]["provider"]);
+                                tempList.push(resp[i]["model"]);
+                                aaData.push(tempList);
+                            }
+                        }
+
+                        var data = {
+                            "aaData": aaData
+                        };
+
+                        // 显示数据
+                        fnCallback(data);
+                    }
+                });
+            },
+            "fnDrawCallback": function () {
+                /*
+                 * fnDrawCallback:在每次table被draw完后调用
+                 */
+                if (!dtTable) {
+                    return;
+                }
+
+                dtTable.$("tr").click(function (e) {
+                    if ($(this).hasClass('row_selected')) {
+                        $(this).removeClass('row_selected');
+                    }
+                    else {
+                        dtTable.$('tr.row_selected').removeClass('row_selected');
+                        $(this).addClass('row_selected');
+                    }
+                });
+            }
+        });
+    }
+
+    /*
+     * 使用dataTable来展示现有库房
+     */
+    function loadStorehouseInfos() {
+        // 清除表单的数据
+        //$("#storehouse_list").html("");
+        var ex = document.getElementById("storehouse_list");
+        if ($.fn.dataTable.fnIsDataTable(ex)) {
+            $(ex).dataTable().fnDestroy();
+        }
+
+        // 定义要展示的列
+        var aoColumns = [
+            {"sTitle": "序号", "sName": "id"},
+            {"sTitle": "库房地点", "sName": "storeplace"},
+            {"sTitle": "库房管理员", "sName": "adminname"}
+        ];
+
+        // 调用dataTable展示
+        var dtTable = $(ex).dataTable({
+            "bFilter": true,        // 是否启用客户端过滤功能
+            "bAutoWidth": false,     // 是否自动计算表格各列宽度
+            "bProcessing": false,    // 指定当正在处理数据的时候，是否显示“正在处理”这个提示信息
+            "bServerSide": false,    // 指定从服务器端获取数据
+            "aoColumns": aoColumns, // 要展示的列
+            "iDisplayLength": 10,   // 用于指定一屏显示的条数，需开启分页器
+            "sAjaxSource": "",      // 指定要从哪个URL获取数据
+            "fnServerData": function (aSource, aDataSet, fnCallback) {  // 指定从服务器端获取数据
+                /*
+                 * dataTable : 注意事项：
+                 * 1. 只能使用GET方法
+                 * 2. url 必须为注册的蓝图，不能使用url_for
+                 *
+                 */
+                $.ajax({
+                    "dataType": 'json',
+                    "type": "GET",
+                    "url": "load_store_house_infos",
+                    "data": aDataSet,
+                    "success": function (resp) {
+                        var aaData = [];
+                        if (resp) {
+                            /*
+                             * 从后端得到的数据必须转换成与aoColumns定义一样的字段
+                             */
+                            var nLen = resp.length;
+                            for (var i = 0; i < nLen; i++) {
+                                var tempList = [];
+                                tempList.push(resp[i]["id"]);
+                                tempList.push(resp[i]["storeplace"]);
+                                tempList.push(resp[i]["adminname"]);
+                                aaData.push(tempList);
+                            }
+                        }
+
+                        var data = {
+                            "aaData": aaData
+                        };
+
+                        // 显示数据
+                        fnCallback(data);
+                    }
+                });
+            },
+            "fnDrawCallback": function () {
+                /*
+                 * fnDrawCallback:在每次table被draw完后调用
+                 */
+                if (!dtTable) {
+                    return;
+                }
+
+                dtTable.$("tr").click(function (e) {
+                    if ($(this).hasClass('row_selected')) {
+                        $(this).removeClass('row_selected');
+                    }
+                    else {
+                        dtTable.$('tr.row_selected').removeClass('row_selected');
+                        $(this).addClass('row_selected');
+                    }
+                });
+            }
+        });
+    }
+
+
+    /*
+     * 加载树
+     * 调用入库加载的资产树，省着重复造轮子
+     *
+     */
+    function loadAssetTree() {
+        $.ajax({
+            type: "POST",
+            url: '/stock_in/asset/types',
+            dataType: "json",
+            data: {return_val: 0},
+            success: function (resp) {
+                var zNodes = resp;
+                $.fn.zTree.init($("#asset_type_tree"), setting, zNodes);
+                window.zTree = $.fn.zTree.getZTreeObj("asset_type_tree");
+                zTree.expandNode(zTree.getNodeByParam('pId', 0));
+            }
+        });
+    }
+
+    /*
+     * 得到选中的ltree路径
+     */
+    function getLTreePath(event, treeId, treeNode) {
+        if (treeNode && !treeNode.noR) {
+            var assetTypePath = getNodePath(treeNode);
+            $("#type_node").val(assetTypePath);
+        }
+    }
+
+    function getNodePath(node) {
+        if (!node) {
+            return "";
+        }
+        var appName = node.name;
+        var pId = node.pId;
+        //树的深度上限是15
+        for (var i = 0; i < 15; i++) {
+            // 得到父节点的对象
+            var pNode = window.zTree.getNodeByParam('id', pId);
+            if (pNode) {
+                appName = pNode.name + '.' + appName;
+                pId = pNode.pId;
+            } else {
+                break;
+            }
+        }
+        return appName;
+    }
+
+    /*
+     * 添加右键菜单
+     * selectNode(treeNode): 选中指定节点
+     */
+    function onRightClick(event, treeId, treeNode) {
+        if (treeNode && !treeNode.noR) {
+            zTree.selectNode(treeNode);
+            showRMenu(event.clientX, event.clientY);
+        }
+    }
+
+    function showRMenu(x, y) {
+        $("#rMenu ul").show();
+        var nMenuHeight = $("#rMenu ul").height();
+        var nWinHeight = $(window).height();
+        y = Math.min((nWinHeight - nMenuHeight), y);
+        rMenu.css({"top": y + "px", "left": x + "px", "visibility": "visible"});
+        $("body").bind("mousedown", onBodyMouseDown);
+        $("body").bind("mousewheel", disableMouseWheel);
+    }
+
+    function hideRMenu() {
+        if (rMenu) rMenu.css({"visibility": "hidden"});
+        $("body").unbind("mousedown", onBodyMouseDown);
+        $("body").unbind("mousewheel", disableMouseWheel);
+    }
+
+    function onBodyMouseDown(event) {
+        if (!(event.target.id == "rMenu" || $(event.target).parents("#rMenu").length > 0)) {
+            rMenu.css({"visibility": "hidden"});
+            $("body").unbind("mousewheel", disableMouseWheel);
+        }
+    }
+
+    function disableMouseWheel() {
+        return false;
+    }
+
+    /*
+     * 根据选择不同的节点添加资产类别或品牌型号
+     */
+    function addAssetClass() {
+        var form = '';
+        hideRMenu();
+        var node = zTree.getSelectedNodes()[0];
+        var parentId = node.pId;
+        var lPath = getNodePath(node);
+        var arrPath = lPath.split(".");
+        var nLen = arrPath.length;
+        if (1 == nLen) {
+            // 点击的是根节点IT，需要添加资产类别
+            // 需要添加品牌、型号对话框表单
+            form += '<form id="add_asset_class_info">';
+            form += '<div class="col-xs-12">';
+            form += '<div style="margin-bottom: 25px;"></div>';
+            form += '<div class="form-group"><label style="width:120px;text-align:right;" for="add_asset_class">资产类别(中文)：</label>';
+            form += '<input type="text" name="add_asset_class" style="width:200px;" placeholder="请输入新的资产类别"></div>';
+            form += '<div class="form-group"><label style="width:120px;text-align:right;" for="add_asset_class_en">资产类别(英文)：</label>';
+            form += '<input type="text" name="add_asset_class_en" style="width:200px;" placeholder="请输入新的资产类别"></div>';
+            form += '<input type="hidden" name="lpath">';
+            form += '</div>';
+        }
+        else {
+            // nLen > 1 : 不是根节点IT
+            // console.log(arrPath[nLen-2]);
+            if (nLen > 1 && arrPath[nLen - 2] == 'IT') {
+                // 添加设备类型对话框表单
+                form += '<form id="add_asset_class_info">';
+                form += '<div class="col-xs-12">';
+                form += '<div style="margin-bottom: 25px;"></div>';
+                form += '<div class="form-group"><label style="width:120px;text-align:right;" for="new_asset_type">设备类型(中文)：</label>';
+                form += '<input type="text" name="new_asset_type" style="width:200px;" placeholder="请输入设备类型名"></div>';
+                form += '<div class="form-group"><label style="width:120px;text-align:right;" for="new_asset_type_en">设备类型(英文)：</label>';
+                form += '<input type="text" name="new_asset_type_en" style="width:200px;" placeholder="请输入设备类型英文名"></div>';
+                form += '<input type="hidden" name="lpath">';
+                form += '</div>';
+                form += '</form>'
+            }
+            else {
+                // 需要添加品牌、型号对话框表单
+                form += '<form id="add_asset_class_info">';
+                form += '<div class="col-xs-12">';
+                form += '<div style="margin-bottom: 25px;"></div>';
+                form += '<div class="form-group"><label style="width:100px;text-align:right;" for="add_provider">品牌：</label>';
+                form += '<input type="text" name="add_provider" style="width:240px;" placeholder="请输入品牌"></div>';
+                form += '<div class="form-group"><label style="width:100px;text-align:right;" for="add_provider_en">品牌(en)：</label>';
+                form += '<input type="text" name="add_provider_en" style="width:240px;" placeholder="请输入品牌英文名"></div>';
+                form += '<div class="form-group"><label style="width:100px;text-align:right;" for="add_model">型号：</label>';
+                form += '<input type="text" name="add_model" style="width:240px;" placeholder="请输入型号"></div>';
+                form += '<input type="hidden" name="lpath">';
+                form += '</div>';
+                form += '</form>';
+            }
+        }
+        // 需用append，不能用html()，否则表单提交是空的
+        // 具体原因未知
+        $("#ltree_option").append(form);
+        //console.log($("#ltree_option"))
+
+        // 向隐藏表单填值
+        $("#add_asset_class_info").find('input[name="lpath"]').val(lPath);
+        var dialogTitle = 'IT资产类别及设备类型添加';
+        // 添加表单校验
+        createFormValidate($("#add_asset_class_info"));
+        var dialog = $("#ltree_option").removeClass('hide').dialog({
+            modal: true,
+            width: 420,
+            resizable: false,
+            title: dialogTitle,
+            title_html: true,
+            buttons: [
+                {
+                    text: "提交",
+                    "class": "btn btn-danger btn-xs",
+                    click: function () {
+                        var thisForm = $("#add_asset_class_info");
+
+                        var bValid = thisForm.valid();
+                        if (!bValid) {
+                            return;
+                        }
+                        var postData = thisForm.serializeArray();
+                        $.ajax({
+                            type: "POST",
+                            url: '{{ url_for("attribute_manager.addAssetClass") }}',
+                            dataType: "json",
+                            data: postData,
+                            success: function (resp) {
+                                if (resp.success) {
+                                    var retDict = resp.data;
+                                    if (retDict) {
+                                        var id = retDict["id"];
+                                        var name = retDict["name"];
+
+                                        // 添加node
+                                        zTree.addNodes(node, {'id': id, 'pId': parentId, 'name': name});
+                                    }
+
+                                    showSuccessTips(resp.msg);
+                                    $("#ltree_option").empty();
+                                    $("#ltree_option").dialog('destroy');
+                                } else {
+                                    showFailTips(resp.msg);
+                                }
+                            },
+                            error: function (jqXHR, textStatus, errorThrown) {
+                                showErrorTips();
+                            }
+                        });
+                    }
+                },
+                {
+                    text: "取消",
+                    "class": "btn btn-xs",
+                    click: function () {
+                        $("#ltree_option").empty();
+                        $("#ltree_option").dialog('destroy');
+                    }
+                }
+            ],
+            close: function () {
+                $("#ltree_option").empty();
+                $("#ltree_option").dialog('destroy');
+            }
+        });
+    }
+
+    // 现在只支持删除设备类型
+    function removeAssetClass() {
+        hideRMenu();
+        var node = zTree.getSelectedNodes()[0];
+        if (node && node.length > 0) {
+//        var node = node[0];
+            var confirmHtml = '<div class="alert alert-info bigger-110">';
+            confirmHtml += '确认要删除该应用吗？';
+            confirmHtml += '</div>';
+            $("#ltree_option").append(confirmHtml);
+        }
+
+        var parentId = node.pId;
+        // 现在只支持删除设备类型对应的叶子节点
+        if (0 == parentId && 1 == parentId) {
+            // 根节点、二级节点(资产级别)无法删除
+            return false;
+        }
+
+        var lPath = getNodePath(node);
+
+        var title_html_str = '删除应用';
+        var dialog = $("#ltree_option").removeClass('hide').dialog({
+            modal: true,
+            width: 280,
+            resizable: true,
+            title: title_html_str,
+            title_html: true,
+            position: {my: "left top", at: "right top", of: '#rMenu'},
+            buttons: [
+                {
+                    text: "确认删除",
+                    "class": "btn btn-danger btn-xs",
+                    click: function () {
+                        params = {
+                            'lpath': lPath
+                        }
+
+                        $.ajax({
+                            url: '{{url_for("attribute_manager.removeAssetClassNode")}}',
+                            dataType: 'json',
+                            contentType: "application/x-www-form-urlencoded",
+                            type: 'POST',
+                            data: params,
+                            success: function (resp) {
+                                var is_succ = resp.success
+                                if (is_succ == true) {
+                                    zTree.removeNode(node);
+                                    $("#ltree_option").dialog('close');
+                                    $("#app_detail_panel").hide();
+                                    showSuccessTips('删除应用成功');
+                                } else {
+                                    $("#ltree_option").dialog('close');
+                                    showFailTips(resp.msg);
+                                }
+                            },
+                            error: function () {
+                                $("ltree_option").dialog('close');
+                                showErrorTips();
+                            }
+                        })
+                    }
+                }
+            ],
+            close: function () {
+                $("#ltree_option").empty();
+                $("#ltree_option").dialog('destroy');
+            }
+        });
+    }
+
+    // 重命名资产信息
+    function renameAssetClass() {
+        hideRMenu();
+    }
+
+    // 表单提交:新库房信息添加
+    function submitFormStorePlace(isGoOn) {
+        var thisForm = $("#add_store_house_msgs").find("form");
+        if (!thisForm.valid()) {
+            return;
+        }
+        var postData = thisForm.serializeArray();
+        $.ajax({
+            type: "POST",
+            url: "add_store_place",
+            dataType: "json",
+            data: postData,
+            success: function (resp) {
+                if (resp.success) {
+                    showSuccessTips(resp.msg);
+                    if (!isGoOn) {
+                        // 清空表单
+                        thisForm[0].reset();
+                        $("#searchWord").val("");
+                    }
+                } else {
+                    showFailTips(resp.msg)
+                }
+            },
+            error: function (jqXHR, textStatus, errorThrown) {
+                showErrorTips();
+            }
+        });
+    }
+
+    // 表单校验
+    function createFormValidate(form) {
+        form.validate({
+            errorClass: 'error-label',
+            focusInvalid: false,
+            rules: {
+                add_asset_class: {
+                    required: true
+                },
+                add_asset_class_en: {
+                    required: true
+                },
+                new_asset_type: {
+                    required: true
+                },
+                new_asset_type_en: {
+                    required: true
+                },
+                add_provider: {
+                    required: true
+                },
+                add_provider_en: {
+                    required: true
+                },
+                add_model: {
+                    required: true
+                },
+                store_place: {
+                    required: true
+                },
+                admin_name: {
+                    required: true
+                }
+            },
+            messages: {
+                add_asset_class: {
+                    required: "资产类别不能为空"
+                },
+                add_asset_class_en: {
+                    required: "资产类别对应的英文名不能为空"
+                },
+                new_asset_type: {
+                    required: "设备类型不能为空"
+                },
+                new_asset_type_en: {
+                    required: "设备类型对应的英文名不能为空"
+                },
+                add_provider: {
+                    required: "品牌不能为空"
+                },
+                add_provider_en: {
+                    required: "品牌对应的英文名不能为空"
+                },
+                add_model: {
+                    required: "设备类型不能为空"
+                },
+                store_place: {
+                    required: "库房地点不能为空"
+                },
+                admin_name: {
+                    required: "库房管理员不能为空"
+                }
+            },
+            errorPlacement: function (error, element) {
+                $(element).parent().children(".icon-exclamation").remove();
+                var error_dom = $.parseStr('<i class="%s" title="%s"></i>',
+                        'icon-exclamation tooltip-error', error.html()
+                );
+                $(error_dom).insertAfter(element.parent().children(":last-child"));
+            },
+            success: function (label, element) {
+                $(element).parent().children(".icon-exclamation").remove();
+            }
+        });
+    }
+
+    //设备状态编辑tab
+    function showDeviceStateTable() {
+        showDetailTable('device_state_table', '/asset_info/loadstate/1');
+    }
+    //资产状态编辑tab
+    function showStoreStateTable() {
+        showDetailTable('store_state_table', '/asset_info/loadstate/2');
+    }
+    //设备状态编辑tab
+    function showDetailTable(id, url) {
+        var ex = document.getElementById(id);
+        if ($.fn.dataTable.fnIsDataTable(ex)) {
+            $(ex).dataTable().fnDestroy();
+        }
+        var chlist = ['序号', '中文名'];
+        var enlist = ['id', 'ch_name'];
+        var aoColumns = [];
+        var d_len = chlist.length;
+        for (var i = 0; i < d_len; i++) {
+            var dicts = {'sTitle': chlist[i], 'sName': enlist[i]};
+            aoColumns.push(dicts);
+        }
+        $(ex).dataTable({
+            "bRetrieve": true,
+            "bPaginate": false,
+            "bServerSide": false,
+            "aoColumns": aoColumns,
+            "iDisplayLength": 30,
+            "sAjaxSource": "",
+            "bAutoWidth": false, //自适应宽度
+            "fnServerData": function (sSource, aDataSet, fnCallback) {
+                $.ajax({
+                    "dataType": 'json',
+                    "type": "GET",
+                    "url": url,
+                    "data": aDataSet,
+                    "success": function (resp) {
+                        var data = constructTableDatas(resp);
+                        fnCallback(data);
+                    },
+                    error: function () {
+                        $('#show_op_log').html('网络错误');
+                    }
+                });
+            }
+        });
+
+    }
+
+    function constructTableDatas(resp) {
+        var aaData = [];
+        d = {};
+        if (resp) {
+            var d = resp;
+            var d_len = d.length;
+            for (var i = 0; i < d_len; i++) {
+                aaData.push([
+                    d[i]['id'],
+                    d[i]['ch_name']
+                ]);
+            }
+        }
+        var data = {
+            "aaData": aaData
+        };
+        return data;
+    }
+
+</script>
+{% endblock %}
+
