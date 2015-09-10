@@ -8,8 +8,8 @@ from fixture import SQLAlchemyFixture, DataSet
 from itdblib.dal.device_state_dal import DeviceStateDal
 from itdblib.models.base import BASE
 from itdblib.models.dt_device_state import DeviceState
-from oslo.config import cfg
-from oslo.db import options
+from oslo_db import options
+from oslo_config import cfg
 from qg.db import api as db_api
 from testtools import TestCase
 

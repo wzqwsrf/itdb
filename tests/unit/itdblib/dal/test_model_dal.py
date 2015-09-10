@@ -5,8 +5,8 @@
 
 import fixtures
 from fixture import SQLAlchemyFixture, DataSet
-from oslo.config import cfg
-from oslo.db import options
+from oslo_db import options
+from oslo_config import cfg
 from qg.db import api as db_api
 from testtools import TestCase
 

@@ -4,7 +4,7 @@
 
 from fixture import DataSet, SQLAlchemyFixture
 from oslo_db import options
-from oslo.config import cfg
+from oslo_config import cfg
 from testtools import TestCase
 import fixtures
 

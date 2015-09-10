@@ -3,7 +3,6 @@
 # author: wangzq <wangzhenqing1008@163.com>
 
 
-
 from sqlalchemy import Column, String, Integer
 from qg.db.models import HasIdMixin
 from itdblib.models import base

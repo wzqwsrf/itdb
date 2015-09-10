@@ -3,8 +3,8 @@
 # author: wangzq <wangzhenqing1008@163.com>
 
 from fixture import DataSet, SQLAlchemyFixture
-from oslo.db import options
-from oslo.config import cfg
+from oslo_db import options
+from oslo_config import cfg
 from testtools import TestCase
 from itdblib.dal.asset_type_dal import AssetTypeDal
 from itdblib.db.api import get_engine
@@ -13,8 +13,6 @@ import fixtures
 
 CONF = cfg.CONF
 CONF.register_opts(options.database_opts, 'database')
-
-from fixture import DataSet
 
 
 class AssetTypeData(DataSet):

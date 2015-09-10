@@ -4,8 +4,8 @@
 
 
 from fixture import DataSet, SQLAlchemyFixture
-from oslo.db import options
-from oslo.config import cfg
+from oslo_db import options
+from oslo_config import cfg
 from testtools import TestCase
 from itdblib.dal.in_out_reason_dal import InOutReasonDal
 from itdblib.db.api import get_engine
