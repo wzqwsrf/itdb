@@ -1,14 +1,10 @@
+# !/usr/bin/env python
 # -*- coding: utf-8 -*-
-#
-# Copyright @ 2014 OPS, Qunar Inc. (qunar.com)
-#
-# Author: jinlong.yang <jinlong.yang@qunar.com>
-#
-from itdblib.common.parse_excel import get_excel_sheet_name
+# author: wangzq <wangzhenqing1008@163.com>
 
 import os
-import tempfile
 import json
+
 from flask import (
     Blueprint,
     render_template,
@@ -17,16 +13,15 @@ from flask import (
 )
 from werkzeug.utils import secure_filename
 from qg.core import log as logging
-from itdblib.common import ajax
 
+from itdblib.common.parse_excel import get_excel_sheet_name
+from itdblib.common import ajax
 from itdblib.services.stock_in_service import StockInService
 from itdblib.services.asset_consume_service import AssetConsumeService
-from itdblib.services.asset_operate_service import AssetOperateService
 
 LOG = logging.getLogger(__name__)
 
 bp = Blueprint('stock_in', __name__)
-
 
 @bp.route('/stock_in', methods=['GET', 'POST'])
 def stockIn():

@@ -1,9 +1,6 @@
+# !/usr/bin/env python
 # -*- coding: utf-8 -*-
-#
-# Copyright @ 2014 OPS, Qunar Inc. (qunar.com)
-#
-# Author: zhenqing.wang <zhenqing.wang@qunar.com>
-#
+# author: wangzq <wangzhenqing1008@163.com>
 
 from flask import (
     request,
@@ -55,6 +52,7 @@ def show_asset_phone_info_by_all(id):
 @bp.route('/operate/<consume_id>', methods=['GET'])
 def get_operate_infos(consume_id):
     from itdblib.dal.operation_info_dal import OperationInfoDal
+
     operInfos = OperationInfoDal().get_all_oper_info_by_asset_id(consume_id)
     aps = AssetConsumeService()
     return aps.get_consume_operate_json(operInfos)
@@ -114,7 +112,7 @@ def export_asset_info():
     save_file = writeExcel(params, '耗材类结果数据.xls', chlist, enlist)
     response = make_response(send_file(save_file,
                                        as_attachment=True
-    ))
+                                       ))
     filesize = os.path.getsize(save_file)
     response.headers['Content-Length'] = filesize
     os.remove(save_file)
